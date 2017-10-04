@@ -17,8 +17,9 @@ class Rest
 		switch($_SERVER['REQUEST_METHOD'])
 		{
 			case "GET":
-				$this->params = $this->clearData($_GET);
-				if ($this->params)
+                $this->params = $this->clearData($_GET);
+                var_dump($this->params);
+				if ($this->params['params'] == 'false')
 					$this->method = 'get' .ucfirst($this->table). 'ById';
 				else
 					$this->method = 'get' . ucfirst($this->table);
@@ -58,7 +59,7 @@ class Rest
 		else
 		{
 			if (get_magic_quotes_gpc())
-				$data = trim(stripslashes($data));
+			    $data = trim(stripslashes($data));
 			
 			$data = strip_tags($data);
 			$clearData = trim($data);

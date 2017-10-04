@@ -9,6 +9,7 @@ class Cars extends Rest {
     protected function getCars()
     {
         $result = array('status' => "OK", "msg" => "getCars");
+        //$this->response([$this->params, $result], 200);
         $this->response($this->toJson( [$this->params, $result] ), 200);
         // $this->response($this->toJson( [$this->params, $result] ), 200);
     }
