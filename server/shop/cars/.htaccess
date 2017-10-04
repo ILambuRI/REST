@@ -1,9 +1,14 @@
 RewriteEngine On
-RewriteBase /~user10/MYPHP/REST/server/shop/cars
+# WORK #
+#RewriteBase /~user10/MYPHP/REST/server/shop/cars
+
+# HOME #
+#RewriteBase /server/shop/cars/
+
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond %{REQUEST_FILENAME} !-s
-RewriteRule ^(.*)$ index.php?request=$1 [QSA,NC,L]
+RewriteRule ^(.*)$ index.php?id=$1 [QSA,NC,L]
 
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^(.*)$ index.php [QSA,NC,L]

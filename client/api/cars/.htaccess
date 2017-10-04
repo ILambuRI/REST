@@ -1,0 +1,6 @@
+RewriteEngine On
+# WORK #
+RewriteRule (.*) http://192.168.0.15/~user10/MYPHP/REST/server/shop/cars$1 [P]
+
+# HOME #
+#RewriteRule (.*) http://rest/server/shop/cars/$1 [P]
