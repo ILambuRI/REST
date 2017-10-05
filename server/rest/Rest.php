@@ -27,15 +27,15 @@ abstract class Rest
 				// $patterns = ['/.json/', '/.xml/', '/.html/'];
 				// $replacements = ['', '', ''];
 				// $this->params['params'] = preg_replace($patterns, $replacements, $this->params['params']);
-				if ($this->params['params'] == 'all')
+				if ($this->params['params'] == '')
 				{
 					$this->method = 'get' . ucfirst($this->table);
 				}
 				else
 				{
 					if (!$this->params['params'])
-						// $this->response('', 406);
-						throw new Exception('001');
+					    $this->response('', 406);
+						//throw new Exception('001');
 					
 					// $this->params = explode('/', rtrim($this->params['params'], '/'));
 					$this->method = 'get' .ucfirst($this->table). 'ById';
@@ -114,16 +114,31 @@ abstract class Rest
 		}
 	}
 	
-	private function setHeaders()
-	{
-		header("HTTP/1.1 ".$this->code." ".$this->getCodeMsg());
+	private function setHeaders($errorCode)
+    {
+        if ($errorCode)
+        {
+            $errorCode = ' | Code: ' . $errorCode;
+            $this->contentType = 'text/html';
+        }
+
+		header("HTTP/1.1 ".$this->code." ".$this->getCodeMsg() . $errorCode);
 		header("Content-Type:".$this->contentType);
 	}
 	
-	public function response($data, $code)
-	{
-		$this->code = ($code) ? $code : 200;
-		$this->setHeaders();
+	public function response($data, $code, $errorCode = '')
+    {
+        $this->code = $code;
+
+        if ($errorCode)
+        {
+            $data =  $code . ' ' .$this->getCodeMsg(). ' | Code: ' .$errorCode. '<br>
+                     <a href="http://rest/server/ErrorCodeInformation.html">
+                        View Error Code Information here.
+                     </a>';
+        }
+
+		$this->setHeaders($errorCode);
 		echo $data;
 		exit;
 	}

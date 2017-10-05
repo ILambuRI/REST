@@ -69,6 +69,7 @@ catch (Exception $e)
     // echo json_encode( ['status' => "Error", "msg" => $e->getMessage()] );
     header( "HTTP/1.1 500 Internal Server Error | Code: " . $e->getMessage() );
     header("Content-Type:text/html");
-    echo '500 Internal Server Error | Code: ' .$e->getMessage(). '<br> <a href="http://rest/server/ErrorCodeInformation.html">View Error Code Information here</a>';
+    echo '500 Internal Server Error | Code: ' .$e->getMessage().
+         '<br> <a href="http://rest/server/ErrorCodeInformation.html">View Error Code Information here</a>';
     exit;
 }

@@ -2,22 +2,16 @@ RewriteEngine On
 # WORK #
 RewriteBase /~user10/MYPHP/REST/server/shop/cars
 
-##RewriteBase /~user6/REST/server/api/cars/
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^.*$ index.php?params=$1
-DirectoryIndex index.php
-
 # HOME #
 ##RewriteBase /server/shop/cars/
 
-#RewriteCond %{REQUEST_FILENAME} !-f
-#RewriteCond %{REQUEST_FILENAME} !-d
-#RewriteCond %{REQUEST_FILENAME} !-s
-#RewriteRule ^(.*)$ index.php?params=$1 [QSA,NC,L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-s
+RewriteRule ^(.*)$ index.php?params=$1 [QSA,NC,L]
 
-#RewriteCond %{REQUEST_FILENAME} -d
-#RewriteRule ^(.*)$ index.php [QSA,NC,L]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^(.*)$ index.php [QSA,NC,L]
 
-#RewriteCond %{REQUEST_FILENAME} -s
-#RewriteRule ^(.*)$ index.php [QSA,NC,L]
+RewriteCond %{REQUEST_FILENAME} -s
+RewriteRule ^(.*)$ index.php [QSA,NC,L]
