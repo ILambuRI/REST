@@ -1,8 +1,8 @@
 RewriteEngine On
 # WORK #
-RewriteBase /api/
+##RewriteRule (.*) http://192.168.0.15/~user6/REST/server/api/$1 [P]
+RewriteBase /shop/
 RewriteRule (.*) http://192.168.0.15/~user10/MYPHP/REST/server/shop/$1 [P]
 
-
 # HOME #
-#RewriteRule (.*) http://rest/server/shop/cars/$1 [P]
+#RewriteRule (.*) http://rest/server/shop/$1 [P]

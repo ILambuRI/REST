@@ -1,28 +1,45 @@
 <?php
-class Rest
+abstract class Rest
 {
+	use tConverting;
 	/* Parameters from the URL */
 	protected $params;
 	/* Method name */
 	protected $method;
 	/* Status code */		
 	protected $code;
-	/* Default  "Content-Type:" */
-	protected $contentType = "application/json";
+	/* Content-Type */
+	protected $contentType;
 	/* Table name in the database */
 	public $table;	
 			
 	private function fragmentation()
 	{
+		$this->params = $this->clearData($_GET);
+		$this->setFormat();
+
 		switch($_SERVER['REQUEST_METHOD'])
 		{
 			case "GET":
-                $this->params = $this->clearData($_GET);
-                var_dump($this->params);
-				if ($this->params['params'] == 'false')
-					$this->method = 'get' .ucfirst($this->table). 'ById';
-				else
+				// $this->params = $this->clearData($_REQUEST);
+				// $this->params['split'] = preg_split("/[\.]+/", $this->params['params']);		
+				$this->params['type'] = $this->contentType;
+				// $patterns = ['/.json/', '/.xml/', '/.html/'];
+				// $replacements = ['', '', ''];
+				// $this->params['params'] = preg_replace($patterns, $replacements, $this->params['params']);
+				if ($this->params['params'] == 'all')
+				{
 					$this->method = 'get' . ucfirst($this->table);
+				}
+				else
+				{
+					if (!$this->params['params'])
+						// $this->response('', 406);
+						throw new Exception('001');
+					
+					// $this->params = explode('/', rtrim($this->params['params'], '/'));
+					$this->method = 'get' .ucfirst($this->table). 'ById';
+				}
 			break;
 
 			case "POST":
@@ -59,14 +76,43 @@ class Rest
 		else
 		{
 			if (get_magic_quotes_gpc())
-			    $data = trim(stripslashes($data));
+				$data = trim(stripslashes($data));
 			
-			$data = strip_tags($data);
+			$data = mb_strtolower(strip_tags($data));
 			$clearData = trim($data);
 		}
 
 		return $clearData;
-	}		
+	}
+	
+	private function setFormat()
+	{
+		$res = preg_split("/[\.]+/", $this->params['params']);
+		$this->params['params'] = $res[0];
+
+		switch ($res[1])
+		{
+			case 'json':
+				$this->contentType = 'application/json';
+			break;
+			
+			case 'xml':
+				$this->contentType = 'text/xml';
+			break;
+			
+			case 'txt':
+				$this->contentType = 'text/plain';
+			break;
+			
+			case 'html':
+				$this->contentType = 'text/html';
+			break;
+			
+			default:
+				$this->contentType = 'application/json';
+			break;
+		}
+	}
 	
 	private function setHeaders()
 	{
@@ -74,19 +120,12 @@ class Rest
 		header("Content-Type:".$this->contentType);
 	}
 	
-	protected function toJson($data)
-	{
-		if(is_array($data))
-		{
-            return json_encode($data);
-        }
-    }
-			
 	public function response($data, $code)
 	{
 		$this->code = ($code) ? $code : 200;
 		$this->setHeaders();
 		echo $data;
+		exit;
 	}
 
 	public function play()
