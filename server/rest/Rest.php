@@ -11,33 +11,27 @@ abstract class Rest
 	/* Content-Type */
 	protected $contentType;
 	/* Table name in the database */
-	public $table;	
+	public $table;
+	/* The response type is always 200 or in headers (Default: 200) */
+	protected $typeResponseCode = false;
 			
 	private function fragmentation()
 	{
 		$this->params = $this->clearData($_GET);
 		$this->setFormat();
+		
+		if ($this->params['response_type'] == 'true')
+			$this->typeResponseCode = true;
 
 		switch($_SERVER['REQUEST_METHOD'])
 		{
 			case "GET":
-				// $this->params = $this->clearData($_REQUEST);
-				// $this->params['split'] = preg_split("/[\.]+/", $this->params['params']);		
-				$this->params['type'] = $this->contentType;
-				// $patterns = ['/.json/', '/.xml/', '/.html/'];
-				// $replacements = ['', '', ''];
-				// $this->params['params'] = preg_replace($patterns, $replacements, $this->params['params']);
 				if ($this->params['params'] == '')
 				{
 					$this->method = 'get' . ucfirst($this->table);
 				}
 				else
 				{
-					if (!$this->params['params'])
-					    $this->response('', 406);
-						//throw new Exception('001');
-					
-					// $this->params = explode('/', rtrim($this->params['params'], '/'));
 					$this->method = 'get' .ucfirst($this->table). 'ById';
 				}
 			break;
@@ -114,31 +108,53 @@ abstract class Rest
 		}
 	}
 	
-	private function setHeaders($errorCode)
+	private function setHeaders($headerText)
     {
-        if ($errorCode)
-        {
-            $errorCode = ' | Code: ' . $errorCode;
-            $this->contentType = 'text/html';
-        }
+        if ($headerText && $this->typeResponseCode)
+			$this->contentType = 'text/html';
+			
+		if ($headerText)
+			$headerText = DELIMITER . $headerText;
 
-		header("HTTP/1.1 ".$this->code." ".$this->getCodeMsg() . $errorCode);
+		header("HTTP/1.1 " . $this->code . " " . $this->getCodeMsg($this->code) . $headerText);
 		header("Content-Type:".$this->contentType);
 	}
 	
-	public function response($data, $code, $errorCode = '')
+	public function response($data, $code = 200, $headerText = false, $info = false)
     {
-        $this->code = $code;
+		if (!$this->typeResponseCode)
+		{
+			$this->code = 200;
+			if ($headerText)
+				$msg = $this->getCodeMsg($code) . DELIMITER . $headerText;
+			else					
+				$msg = $this->getCodeMsg($code);
+			
+			if($info && $code != 200)
+				$data[] = ['status' => $code, 'msg' => $msg, 'information' => ERROR_CODE_INFORMATION];
+			else
+				$data[] = ['status' => $code, 'msg' => $msg];
+			
+			$data = $this->converting($data);
+		}
 
-        if ($errorCode)
+        if ($this->typeResponseCode)
         {
-            $data =  $code . ' ' .$this->getCodeMsg(). ' | Code: ' .$errorCode. '<br>
-                     <a href="http://rest/server/ErrorCodeInformation.html">
-                        View Error Code Information here.
-                     </a>';
+			$this->code = $code;
+			if ($headerText && $code != 200)
+			{
+				$string = ERROR_HTML_TEXT;
+				ksort( $patterns = ['/%STATUS_CODE%/', '/%ERROR_DESCRIPTION%/', '/%CODE_NUMBER%/'] );
+				ksort( $replacements = [$code, $this->getCodeMsg($code), $headerText] );
+				$data =  preg_replace($patterns, $replacements, $string);
+			}
+			else
+			{
+				$data = $this->converting($data);
+			}
         }
 
-		$this->setHeaders($errorCode);
+		$this->setHeaders($headerText);
 		echo $data;
 		exit;
 	}
@@ -153,11 +169,11 @@ abstract class Rest
 		}
 		else
 		{
-			$this->response('', 404);
+			$this->response('', 404, ERROR_HEADER_CODE . '001 ' . __METHOD__ , true);
 		}
     }
 
-	private function getCodeMsg()
+	private function getCodeMsg($code)
 	{
 		$codeMsg = [
 			/* 100+ */
@@ -184,6 +200,6 @@ abstract class Rest
 			503 => 'Service Unavailable', 504 => 'Gateway Timeout', 505 => 'HTTP Version Not Supported'
 		];
 
-		return ($codeMsg[$this->code]) ? $codeMsg[$this->code] : $codeMsg[500];
+		return $codeMsg[$code];
 	}
 }

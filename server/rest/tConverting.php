@@ -3,9 +3,6 @@ trait tConverting
 {
     protected function converting($data)
 	{
-		if(!is_array($data))
-			throw new Exception('Server error: converting($data) - It was not an array in $data');
-			
 		switch ($this->contentType)
 		{
 			case 'application/json':
@@ -79,7 +76,6 @@ trait tConverting
 			{
 				$xml_data->addChild("$key",htmlspecialchars("$value"));
 			}
-		 }
+		}
 	}
-
 }
