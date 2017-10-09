@@ -2,58 +2,78 @@
 require_once("../../config.php");
 require_once("../Db.php");
 
-class Cars extends Rest {
-
-    protected $data = "";
-    private $dbh;
+class Cars extends Rest
+{
+    /**Database object (PDO)*/
+    private $db;
 
     public function __construct()
     {
-        $this->dbh = new Db();
+        $this->db = new Db();
     }
     
+    /**
+     * Get the whole table of cars
+     */
     protected function getCars()
     {
-        $this->response( [$this->params] );
+        $sql = 'SELECT id, mark, model, year, engine, color, speed, price FROM rest_cars';
+        $result = $this->db->execute($sql,[]);
+
+        if (!$result)
+            $this->response( '', 404, '002', true );
+
+        $this->response($result);
     }
     
-    protected function getCarsById()
+    /**
+     * Get all cars by parameters.
+     * id/mark/model/year/engine/color/speed/price - input.
+     * FALSE or NULL - that would not take this.
+     * Example: false/null/X6/false/false/white/300
+     */
+    protected function getCarsByParams()
     {
-        // list($this->params['id'],
-        //      $this->params['mark'],
-        //      $this->params['model'],
-        //      $this->params['year'],
-        //      $this->params['engine'],
-        //      $this->params['color'],
-        //      $this->params['speed']) = explode('/', $this->params['params'], 6);
+        list($arrParams['id'],
+             $arrParams['mark'],
+             $arrParams['model'],
+             $arrParams['year'],
+             $arrParams['engine'],
+             $arrParams['color'],
+             $arrParams['speed'],
+             $arrParams['price']
+        ) = explode('/', $this->params['params'], 9);
 
-        // $id = $this->params['id'];
-        // $result = array('status' => "OK", "msg" => "getCarsById($id)");
-        // $this->response( '', 406, ERROR_HEADER_CODE . '001 ' . __METHOD__ , true );
-        $this->response([$this->params]);
+        $sql = 'SELECT id, mark, model, year, engine, color, speed, price
+                FROM rest_cars WHERE ';
+
+        $cnt = 0;
+        foreach ($arrParams as $key => $value)
+        {
+            if ($value == 'null' or $value == null or $value == 'false')
+            {
+                unset($arrParams[$key]);
+                continue;
+            }
+
+            if ($cnt > 0)
+                $sql .= ' AND ' .$key. ' = :' .$key;
+            else
+                $sql .= $key. ' = :' .$key;
+
+            $cnt++;
+        }
+
+        if (count($arrParams) == 0)
+            $this->response( '', 406, '017', true );
+        
+        $result = $this->db->execute($sql, $arrParams);
+
+        if (!$result)
+            $this->response( '', 404, '002', true );
+
+        $this->response($result);
     }
-
-    protected function postCars()
-    {
-        // $result = $this->params;
-        // $result = array('status' => "OK", "msg" => "postCars");
-        $this->response([$this->params]);
-    }
-
-    protected function putCars()
-    {
-        // $result = $this->params;
-        // $result = array('status' => "OK", "msg" => "putCars");
-        $this->response([$this->params]);
-    }
-
-    protected function deleteCars()
-    {
-        // $result = $this->params;
-        // $result = array('status' => "result", "msg" => "deleteCars");
-        $this->response([$this->params]);
-    }
-
 }
 
 try

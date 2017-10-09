@@ -1,26 +1,34 @@
 <?php
 abstract class Rest
 {
-	use tConverting;
-	/* Parameters from the URL */
+	/** Parameters from the URL */
 	protected $params;
-	/* Method name */
+	/** Method name */
 	protected $method;
-	/* Status code */		
+	/** Status code */		
 	protected $code;
-	/* Content-Type */
+	/** Content-Type */
 	protected $contentType;
-	/* Table name in the database */
+	/** Table name in the database */
 	public $table;
-	/* The response type is always 200 or in headers (Default: 200) */
+	/**
+	 * The response type is always 200 or in headers.
+	 * ?response_type_head=true - switches between them.
+	 * (Default: 200).
+	 */
 	protected $typeResponseCode = false;
-			
+
+	/**
+	 * Definition of transmission method and the response method.
+	 * Setting the name of the method to start.
+	 * Cleaning of incoming parameters.
+	 */
 	private function fragmentation()
 	{
-		$this->params = $this->clearData($_GET);
+		$this->params = Validate::clearInputs($_GET);
 		$this->setFormat();
 		
-		if ($this->params['response_type'] == 'true')
+		if ($this->params['response_type_head'] == 'true')
 			$this->typeResponseCode = true;
 
 		switch($_SERVER['REQUEST_METHOD'])
@@ -32,73 +40,59 @@ abstract class Rest
 				}
 				else
 				{
-					$this->method = 'get' .ucfirst($this->table). 'ById';
+					$this->method = 'get' .ucfirst($this->table). 'ByParams';
 				}
 			break;
 
 			case "POST":
 				$this->method = 'post' . ucfirst($this->table);
-				$this->params = $this->clearData($_POST);
-			break;
-
-			case "DELETE":
-				$this->method = 'delete' . ucfirst($this->table);			
-				$this->params = $this->clearData($_GET);
+				$this->params = Validate::trimArrayData($_POST);
 			break;
 
 			case "PUT":
 				$this->method = 'put' . ucfirst($this->table);
 				parse_str(file_get_contents("php://input"), $putParams);
-				$this->params = $this->clearData($putParams);
+				$this->params = Validate::trimArrayData($putParams);
+			break;
+
+			case "DELETE":
+				$this->method = 'delete' . ucfirst($this->table);			
 			break;
 
 			default:
-				$this->response('',406);
+            	$this->response( '', 406, '009', true );
 			break;
 		}
 	}
-		
-	private function clearData($data)
-	{
-		$clearData = [];
-
-		if (is_array($data))
-		{
-			foreach ($data as $k => $v)
-				$clearData[$k] = $this->clearData($v);
-		}
-		else
-		{
-			if (get_magic_quotes_gpc())
-				$data = trim(stripslashes($data));
-			
-			$data = mb_strtolower(strip_tags($data));
-			$clearData = trim($data);
-		}
-
-		return $clearData;
-	}
 	
+	/**
+	 * Set the response format and removing it from URL.
+	 */
 	private function setFormat()
 	{
-		$res = preg_split("/[\.]+/", $this->params['params']);
-		$this->params['params'] = $res[0];
+		preg_match("/\.\w+$/", $this->params['params'], $match);
 
-		switch ($res[1])
+		if ($match[0])
 		{
-			case 'json':
+			$lengh = strlen($match[0]);
+			$this->params['params'] = substr($this->params['params'], 0, -$lengh);
+		}
+
+		switch ($match[0])
+		{
+			case '.json':
 				$this->contentType = 'application/json';
 			break;
 			
-			case 'xml':
+			case '.xml':
 				$this->contentType = 'text/xml';
 			break;
 			
-			case 'txt':
+			case '.txt':
 				$this->contentType = 'text/plain';
 			break;
 			
-			case 'html':
+			case '.xhtml':
 				$this->contentType = 'text/html';
 			break;
 			
@@ -107,31 +101,67 @@ abstract class Rest
 			break;
 		}
 	}
+
+	/**
+	 * Convert the data to the desired format for the answer.
+	 * @return array
+	 */
+	protected function converting($data)
+	{
+		switch ($this->contentType)
+		{
+			case 'application/json':
+				$data = Convert::toJson($data);
+			break;
+			
+			case 'text/xml':
+				$data = Convert::toXml($data);
+			break;
+			
+			case 'text/plain':
+				$data = Convert::toText($data);
+			break;
+			
+			case 'text/html':
+				$data = Convert::toHtml($data);
+			break;
+		}
+        
+        return $data;
+	}
 	
+	/**
+	 * Set the headers. If there is an error, it supplements the error code.
+	 */
 	private function setHeaders($headerText)
     {
-        if ($headerText && $this->typeResponseCode)
-			$this->contentType = 'text/html';
-			
 		if ($headerText)
-			$headerText = DELIMITER . $headerText;
+			$headerText = DELIMITER . ERROR_HEADER_CODE . $headerText;
 
 		header("HTTP/1.1 " . $this->code . " " . $this->getCodeMsg($this->code) . $headerText);
 		header("Content-Type:".$this->contentType);
 	}
 	
+	/**
+	 * Forming a response to the client.
+	 * By default (200), through the data in the array (status = code)
+	 * If "typeResponseCode == true"
+	 * the response code will always go through the headers.
+	 */
 	public function response($data, $code = 200, $headerText = false, $info = false)
     {
 		if (!$this->typeResponseCode)
 		{
 			$this->code = 200;
 			if ($headerText)
-				$msg = $this->getCodeMsg($code) . DELIMITER . $headerText;
+				$msg = $headerText;
 			else					
 				$msg = $this->getCodeMsg($code);
 			
 			if($info && $code != 200)
-				$data[] = ['status' => $code, 'msg' => $msg, 'information' => ERROR_CODE_INFORMATION];
+				$data[] = ['status' => $code, 'code' => $msg, 'information' => ERROR_CODE_INFORMATION];
+			elseif (!$info && $code != 200)
+				$data[] = ['status' => $code, 'msg' => $msg];
 			else
 				$data[] = ['status' => $code, 'msg' => $msg];
 			
@@ -143,9 +173,10 @@ abstract class Rest
 			$this->code = $code;
 			if ($headerText && $code != 200)
 			{
+				$this->contentType = 'text/html';				
 				$string = ERROR_HTML_TEXT;
 				ksort( $patterns = ['/%STATUS_CODE%/', '/%ERROR_DESCRIPTION%/', '/%CODE_NUMBER%/'] );
-				ksort( $replacements = [$code, $this->getCodeMsg($code), $headerText] );
+				ksort( $replacements = [$code, $this->getCodeMsg($code), ERROR_HEADER_CODE . $headerText] );
 				$data =  preg_replace($patterns, $replacements, $string);
 			}
 			else
@@ -159,6 +190,10 @@ abstract class Rest
 		exit;
 	}
 
+	/**
+	 * Play baby, play!
+	 * Running the installed method.
+	 */
 	public function play()
 	{
 		$this->fragmentation();
@@ -169,10 +204,13 @@ abstract class Rest
 		}
 		else
 		{
-			$this->response('', 404, ERROR_HEADER_CODE . '001 ' . __METHOD__ , true);
+			$this->response('', 405, '001', true);
 		}
     }
-
+	
+	/**
+	 * Just a set of errors and their description.
+	 */
 	private function getCodeMsg($code)
 	{
 		$codeMsg = [

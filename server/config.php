@@ -1,29 +1,37 @@
 <?php
-// set_include_path(get_include_path() .PATH_SEPARATOR. 'shop/cars' .PATH_SEPARATOR. 'rest');
+// set_include_path(get_include_path() .PATH_SEPARATOR. 'shop/cars' .PATH_SEPARATOR. 'rest' .PATH_SEPARATOR. str_replace('\\', '/', __DIR__). '/rest/services');
 
-function __autoload($class){
+function __autoload($class)
+{
     require_once('rest/' .$class. '.php');
 }
+
+
+// spl_autoload_register(function ($class) {
+//     require_once('rest/services/' .$class. '.php');
+// });
 
 /* MySql Home */
 // define('M_HOST','localhost');
 // define('M_USER','root');
 // define('M_PASS','');
-// define('M_DB','soap');
+// define('M_DB','rest');
+// define('ERROR_CODE_INFORMATION', 'http://rest/server/ErrorCodeInformation.html');
 
 /* MySql Class */
 define('M_HOST','localhost');
 define('M_USER','user10');
 define('M_PASS','tuser10');
 define('M_DB','user10');
+define('ERROR_CODE_INFORMATION', 'http://192.168.0.15/~user10/MYPHP/REST/server/ErrorCodeInformation.html');
 
 /* SERVICE */
-define('DELIMITER', ' | ');
-define('ERROR_CODE_INFORMATION', 'http://rest/server/ErrorCodeInformation.html');
+define('HASH_LIFETIME', '7200');
 
 /* ERRORs */
+define('DELIMITER', ' | ');
 define('ERROR_HEADER_CODE', 'Error\'s Code: ');
-define('ERROR_HTML_TEXT', 
+define('ERROR_HTML_TEXT',
        '%STATUS_CODE% %ERROR_DESCRIPTION%' .DELIMITER. '%CODE_NUMBER%<br>
        <a href="' .ERROR_CODE_INFORMATION. '">
            View Error Code Information here.

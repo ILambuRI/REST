@@ -7,6 +7,36 @@
     <title>Error code information</title>
 </head>
 <body>
-    [001]: There is no such method
+    [001]: There is no such method | Rest::play
+    [002]: The database did not return the result to your query
+    [003]: Data has not been validated during registration (login) | Users::postUsers
+    [004]: Data has not been validated during registration (firstname) | Users::postUsers
+    [005]: Data has not been validated during registration (lasttname) | Users::postUsers
+    [006]: Data has not been validated during registration (password) | Users::postUsers
+    [007]: Did not pass validation (login) | Users::getUsersByParams
+    [008]: This login already exists in the database | Users::postUsers
+    [009]: The application is allowed only GET, POST, PUT, DELETE | Rest::fragmentation
+    [010]: Data has not been validated during authorization (login) | Users::putUsers
+    [011]: Data has not been validated during authorization (password) | Users::putUsers
+    [012]: Login is incorrect (authorization) | Users::putUsers
+    [013]: Password is incorrect (authorization) | Users::putUsers
+    [014]: The hash time expired (or hash not found), you need a new authorization | Users::getUsersByParams
+    [015]: Not a valid request /null(or false)/hash or /login | Users::getUsersByParams
+    [016]: The hash was not found in the table | Users::deleteUsers
+    [017]: Invalid parameters for a query must be in a certain sequence: | Cars::getCarsByParams
+           id/mark/model/year/engine/color/speed/price
+           Example:
+           - false/null/model/false/false/null/speed
+           - 1/bmw/x6
+           - null/null/x6/false/null/white
+           - etc.
+           FALSE or NULL - that would not take this.
+    [018]: No user found with such hash or the transmitted hash is not correct. | Orders::getUserIdByHash
+    [019]: There is no such cars id in the database or the transmitted cars id is not correct. | Orders::postOrders
+    [020]: Payment must be "card" or "cash" only. Or the transmitted payment is not correct. | Orders::postOrders
+    [021]: There is no such orders id in the database or the transmitted orders id is not correct. | Orders::putOrders
+    [022]: Status must be "0"(Not delivered) or "1"(Delivered) only. Or the transmitted status is not correct. | Orders::putOrders
+    [023]: There is no such record in the table. The user id and the orders id have not been tested. | Orders::putOrders
+           Or the transmitted status is not correct.
 </body>
 </html>

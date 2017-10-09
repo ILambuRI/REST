@@ -4,24 +4,36 @@ class Db
     protected $dbh;
     protected $pdoError;
 
+    /**
+     * Connecting to database.
+     */
     function __construct()
     {
         try
         {
             $this->dbh = new PDO('mysql:host=' .M_HOST. ';dbname=' . M_DB, M_USER, M_PASS);
+            $this->dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         }
         catch (PDOException $e)
         {
             /* Send Email to admin */
-            $pdoError = 'Problems with the PDO: ' .$e->getMessage(). ' Code: ' .$e->getCode(). ' On line:' . $e->getLine();
+            $this->pdoError = 'Problems with the PDO: ' .$e->getMessage(). ' Code: ' .$e->getCode(). ' On line:' . $e->getLine();
+            exit($this->pdoError);
         }
     }
 
+    /**
+     * Run a query (with bind parameters).
+     * Return assoc array when SELECT or count rows
+     * when INSERT, DELETE and UPDATE.
+     */
     public function execute($query, array $arrParams)
     {
-        if (!$this->dbh) return new SoapFault("DB_ERROR", ERR_TO_CLIENT_NO_CONNECTION);
+        if (!$this->dbh)
+            return false;
         
         $sth = $this->dbh->prepare($query);
+
         if (count($arrParams))
         {
             foreach ($arrParams as $key => &$value)
@@ -33,15 +45,15 @@ class Db
         $sth->execute();
 
         $regExp = preg_match('/(^INSERT\s{1}INTO)|(^DELETE\s)|(^UPDATE\s)/', $query);
-        
-        if ($regExp) {
+        if ($regExp)
+        {
             if ($rows = $sth->rowCount())
             {
-                return ['success' => $rows];
+                return $rows;
             }
             else
             {
-                return new SoapFault("DB_ERROR", ERR_TO_CLIENT_NO_WRITING);
+                return false;
             }
         }
 
