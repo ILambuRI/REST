@@ -2,6 +2,8 @@
 require_once("../../config.php");
 require_once("../Db.php");
 
+use services\Validate;
+
 class Users extends Rest
 {
     /**Database object (PDO)*/

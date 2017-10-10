@@ -1,4 +1,7 @@
-<?php 
+<?php
+
+namespace services;
+
 class Validate
 {
 	/**

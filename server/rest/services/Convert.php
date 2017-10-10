@@ -1,4 +1,9 @@
 <?php
+
+namespace services;
+
+use SimpleXMLElement;
+
 class Convert
 {
     /**

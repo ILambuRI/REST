@@ -1,4 +1,8 @@
 <?php
+
+use services\Validate;
+use services\Convert;
+
 abstract class Rest
 {
 	/** Parameters from the URL */

@@ -31,9 +31,9 @@ class Orders extends Rest
                     rest_users.lastname,
                     rest_users.password,
                     rest_users.hash,
-                    rest_users.time
+                    rest_users.time,
                     rest_orders.payment,
-                    rest_orders.status,
+                    rest_orders.status
                 FROM rest_orders
                     INNER JOIN rest_cars
                     ON rest_orders.id_cars = rest_cars.id

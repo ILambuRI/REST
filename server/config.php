@@ -1,29 +1,38 @@
 <?php
-// set_include_path(get_include_path() .PATH_SEPARATOR. 'shop/cars' .PATH_SEPARATOR. 'rest' .PATH_SEPARATOR. str_replace('\\', '/', __DIR__). '/rest/services');
 
-function __autoload($class)
+function autoloadClass ($class) 
 {
-    require_once('rest/' .$class. '.php');
+    $path = __DIR__ . "/rest/" . $class . ".php";
+    $path = str_replace("\\", '/', $path);
+
+    if (file_exists($path)) 
+    {
+        require_once $path;
+
+        if (class_exists($class)) 
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
 
-
-// spl_autoload_register(function ($class) {
-//     require_once('rest/services/' .$class. '.php');
-// });
+spl_autoload_register('autoloadClass');
 
 /* MySql Home */
-// define('M_HOST','localhost');
-// define('M_USER','root');
-// define('M_PASS','');
-// define('M_DB','rest');
-// define('ERROR_CODE_INFORMATION', 'http://rest/server/ErrorCodeInformation.html');
+define('M_HOST','localhost');
+define('M_USER','root');
+define('M_PASS','');
+define('M_DB','rest');
+define('ERROR_CODE_INFORMATION', 'http://rest/server/ErrorCodeInformation.html');
 
 /* MySql Class */
-define('M_HOST','localhost');
-define('M_USER','user10');
-define('M_PASS','tuser10');
-define('M_DB','user10');
-define('ERROR_CODE_INFORMATION', 'http://192.168.0.15/~user10/MYPHP/REST/server/ErrorCodeInformation.html');
+// define('M_HOST','localhost');
+// define('M_USER','user10');
+// define('M_PASS','tuser10');
+// define('M_DB','user10');
+// define('ERROR_CODE_INFORMATION', 'http://192.168.0.15/~user10/MYPHP/REST/server/ErrorCodeInformation.html');
 
 /* SERVICE */
 define('HASH_LIFETIME', '7200');
@@ -37,4 +46,3 @@ define('ERROR_HTML_TEXT',
            View Error Code Information here.
        </a>'
 );
-
